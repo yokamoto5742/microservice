@@ -27,13 +27,13 @@ class OrderItemSchema(BaseModel):
     quantity: Optional[conint(ge=1, strict=True)] = 1
 
     @validator('quantity')
-    def quantity_non_nullable(cls, value):
+    def quantity_non_nullable(self, value):
         assert value is not None, 'quantity is may be None'
         return value
 
 
 class CreateOrderSchema(BaseModel):
-    order: conlist(OrderItemSchema)
+    order: conlist(OrderItemSchema, min_length=1)
 
 
 class GetOrderSchema(BaseModel):

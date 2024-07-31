@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -10,12 +9,12 @@ from starlette import status
 from orders.app import app
 from orders.api.schemas import CreateOrderSchema, GetOrderSchema, GetOrdersSchema
 
-ORDERS =[]
+ORDERS = []
 
 
 @app.get('/orders', response_model=GetOrdersSchema)
 def get_orders():
-    return {'orders': [ORDERS]}
+    return {'orders': ORDERS}
 
 
 @app.post('/orders', status_code=status.HTTP_201_CREATED, response_model=GetOrderSchema)
@@ -33,7 +32,7 @@ def get_order(order_id: UUID):
     for order in ORDERS:
         if order['id'] == order_id:
             return order
-    raise HTTPException(status_code=HTTPStatus.NOT_FOUND.value, detail=f'Order with ID {order_id} not found')
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Order with ID {order_id} not found')
 
 
 @app.put('/orders/{order_id}', response_model=GetOrderSchema)
@@ -42,19 +41,34 @@ def update_order(order_id: UUID, order_details: CreateOrderSchema):
         if order['id'] == order_id:
             order.update(order_details.dict())
             return order
-    raise HTTPException(status_code=HTTPStatus.NOT_FOUND.value, detail=f'Order with ID {order_id} not found')
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Order with ID {order_id} not found')
 
 
 @app.delete('/orders/{order_id}', status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 def delete_order(order_id: UUID):
-    return Response(status_code=HTTPStatus.NO_CONTENT.value)
+    for index, order in enumerate(ORDERS):
+        if order['id'] == order_id:
+            ORDERS.pop(index)
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail=f'Order with ID {order_id} not found')
 
 
-@app.post('/orders/{order_id}/cancel')
+@app.post('/orders/{order_id}/cancel', response_model=GetOrderSchema)
 def cancel_order(order_id: UUID):
-    return orders
+    for order in ORDERS:
+        if order['id'] == order_id:
+            order['status'] = 'cancelled'
+            return order
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail=f'Order with ID {order_id} not found')
 
 
-@app.post('/orders/{order_id}/pay')
+@app.post('/orders/{order_id}/pay', response_model=GetOrderSchema)
 def pay_order(order_id: UUID):
-    return orders
+    for order in ORDERS:
+        if order['id'] == order_id:
+            order['status'] = 'progress'
+            return order
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail=f'Order with ID {order_id} not found')

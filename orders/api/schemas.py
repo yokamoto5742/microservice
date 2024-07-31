@@ -1,9 +1,10 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import List, Any
 from uuid import UUID
 
-from pydantic import BaseModel, conint, conlist, validator
+from pydantic import BaseModel, Field, field_validator
+from typing_extensions import Annotated
 
 
 class Size(Enum):
@@ -24,16 +25,17 @@ class StatusEnum(Enum):
 class OrderItemSchema(BaseModel):
     product: str
     size: Size
-    quantity: Optional[conint(ge=1, strict=True)] = 1
+    quantity: Annotated[int, Field(ge=1, strict=True)] = 1
 
-    @validator('quantity')
-    def quantity_non_nullable(cls, value):
-        assert value is not None, 'quantity is may be None'
+    @field_validator('quantity')
+    @classmethod
+    def quantity_non_nullable(cls, value: Any) -> Any:
+        assert value is not None, 'quantity may not be None'
         return value
 
 
 class CreateOrderSchema(BaseModel):
-    order: conlist(OrderItemSchema)
+    order: Annotated[List[OrderItemSchema], Field(min_length=1)]
 
 
 class GetOrderSchema(BaseModel):

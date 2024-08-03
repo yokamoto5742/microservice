@@ -3,7 +3,7 @@ from enum import Enum
 from typing import List, Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator
 from typing_extensions import Annotated
 
 
@@ -27,8 +27,6 @@ class OrderItemSchema(BaseModel):
     size: Size
     quantity: Annotated[int, Field(ge=1, strict=True)] = 1
 
-    model_config = ConfigDict(extra='forbid', strict=True)
-
     @field_validator('quantity')
     @classmethod
     def quantity_non_nullable(cls, value: Any) -> Any:
@@ -39,18 +37,12 @@ class OrderItemSchema(BaseModel):
 class CreateOrderSchema(BaseModel):
     order: Annotated[List[OrderItemSchema], Field(min_length=1)]
 
-    model_config = ConfigDict(extra='forbid', strict=True)
-
 
 class GetOrderSchema(BaseModel):
     id: UUID
     status: StatusEnum
     created: datetime
 
-    model_config = ConfigDict(extra='forbid', strict=True)
-
 
 class GetOrdersSchema(BaseModel):
     orders: List[GetOrderSchema]
-
-    model_config = ConfigDict(extra='forbid', strict=True)

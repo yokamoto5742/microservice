@@ -32,7 +32,6 @@ def create_order(order_details: CreateOrderSchema):
 def get_order(cancelled: Optional[bool] = None, limit: Optional[int] = None):
     if cancelled is None and limit is None:
         return {'orders': orders}
-
     query_set = [order for order in orders]
 
     if cancelled is not None:
